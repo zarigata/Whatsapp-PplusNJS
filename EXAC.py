@@ -1,3 +1,10 @@
+import io
+import sys
+
+old_stdout = sys.stdout
+sys.stdout = buffer = io.StringIO()
+
+
 code = """
 import random
 print (random.randint(0,10))
