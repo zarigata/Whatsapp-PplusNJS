@@ -38,8 +38,41 @@ client.on('message', async (message) => {
     // Log received message
     console.log(`Received message from ${messageData.name}: ${message.body}`);
 
-    // Save message data to JSON and CSV
-    saveMessageData(messageData);
+    // Save data to JSON and CSV
+function saveMessageData(messageData) {
+    // Save to JSON
+    let jsonData = [];
+    if (fs.existsSync('messages.json')) {
+        try {
+            const fileContent = fs.readFileSync('messages.json', 'utf-8');
+            jsonData = JSON.parse(fileContent);
+            if (!Array.isArray(jsonData)) {
+                jsonData = []; // Reset to an empty array if parsed data is not an array
+            }
+        } catch (error) {
+            console.error('Error reading or parsing messages.json:', error);
+            jsonData = []; // Start with an empty array if the file is not valid JSON
+        }
+    }
+    jsonData.push(messageData);
+    fs.writeFileSync('messages.json', JSON.stringify(jsonData, null, 2), 'utf-8');
+
+    // Save to CSV
+    const csvWriter = createObjectCsvWriter({
+        path: 'messages.csv',
+        header: [
+            { id: 'name', title: 'Contact Name' },
+            { id: 'number', title: 'Phone Number' },
+            { id: 'lastMessage', title: 'Last Message' },
+            { id: 'lastTalkedTo', title: 'Last Talked To' }
+        ],
+        append: true
+    });
+
+    csvWriter.writeRecords([messageData])
+        .then(() => console.log('Message saved to CSV.'));
+}
+
 
     // Fetch last 2 messages from the same chat
     const messages = await chat.fetchMessages({ limit: 3 });
